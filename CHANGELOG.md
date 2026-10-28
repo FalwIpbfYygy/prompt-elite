@@ -11,4 +11,5 @@
 - [修改] 需求砍半：「量化回测审计与优化任务」两份重复副本（纯文本 trade + markdown 通用/AI生成）重写为约一半长度，保留全部核心约束——先审计后改、禁造假/未来函数、分阶段确认、可复现、不碰实盘（`data/prompts.json`）。
 - [新增] 项目文档：`README.md`（启动方式 + `.env` 变量清单）、`.env.example`（无密钥模板）。
 - [文档] 上传至 GitHub `FalwIpbfYygy/prompt-elite`，隐私文件（`.env` / `config.json` / `prompts.json`）全程未入库（红线）。
+- [修改] `.gitignore` 增补 IDE 配置忽略：`.idea/`、`.vscode/`，保持仓库只含功能文件。
 - [新增] 本文件 `CHANGELOG.md`：建立项目级变更留痕机制。
