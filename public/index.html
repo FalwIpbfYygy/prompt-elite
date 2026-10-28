@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Elite · AI 提示词管理</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- 极光渐变背景（随滚动视差 + 空闲漂移） -->
+  <div class="aurora" id="aurora" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+    <span class="blob b4"></span>
+  </div>
+
+  <div class="app">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="brand">
+          <div class="logo">P</div>
+          <div class="brand-text">
+            <strong>Prompt Elite</strong>
+          </div>
+        </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="all">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+          <span class="nav-label">全部提示词</span> <em id="cnt-all">0</em>
+        </button>
+        <button class="nav-item" data-view="favorite">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5l-1.4-1.3C5.4 14.5 3 12.3 3 9.4 3 7.3 4.6 5.8 6.7 5.8c1.3 0 2.6.7 3.3 1.8.7-1.1 2-1.8 3.3-1.8 2.1 0 3.7 1.5 3.7 3.6 0 2.9-2.4 5.1-7.6 9.8L12 20.5z"/></svg></span>
+          <span class="nav-label">我的收藏</span> <em id="cnt-fav">0</em>
+        </button>
+        <button class="nav-item" data-view="recent">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>
+          <span class="nav-label">最近使用</span>
+        </button>
+      </nav>
+
+      <div class="side-section">
+        <div class="side-title">分类管理</div>
+        <div id="cat-list" class="cat-list"></div>
+      </div>
+
+      <div class="side-foot">
+        <button class="ghost-btn" id="btn-inspire">💡 灵感胶囊</button>
+        <button class="ghost-btn" id="btn-model">⚙️ 模型配置</button>
+      </div>
+    </aside>
+
+    <!-- 主区域 -->
+    <main class="main">
+      <header class="topbar">
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input id="search" type="text" placeholder="搜索标题或标签…" autocomplete="off" />
+          <kbd id="kbd-hint">Ctrl I</kbd>
+        </div>
+        <div class="topbar-right">
+          <button class="top-btn" id="btn-import" title="上传 / 导入 JSON 文件">⬆ 上传</button>
+          <button class="top-btn" id="btn-export" title="下载 / 导出 JSON 文件">⬇ 下载</button>
+          <span class="vsep"></span>
+          <button class="top-btn" id="btn-theme" title="切换浅色 / 深色">浅色</button>
+          <input type="file" id="file-input" accept=".json" hidden />
+        </div>
+      </header>
+
+      <section class="content-head">
+        <div>
+          <h1 id="h-title">全部提示词</h1>
+          <p class="sub"><span id="item-count">0</span> PROMPTS</p>
+        </div>
+        <div>
+          <div class="filter-pills" id="filter-pills"></div>
+          <div class="tag-filter" id="tag-filter" hidden></div>
+        </div>
+      </section>
+
+      <section class="grid" id="grid"></section>
+
+      <div class="empty" id="empty" hidden>
+        <div class="empty-ico">🗂️</div>
+        <p>这里还空空如也，点右下角「+ 新建提示词」开始吧</p>
+      </div>
+
+      <button class="fab" id="btn-new" title="新建提示词">＋ 新建提示词</button>
+    </main>
+  </div>
+
+  <!-- 提示词编辑 / 详情弹窗 -->
+  <div class="modal" id="modal-edit" hidden>
+    <div class="modal-card glass">
+      <div class="modal-head">
+        <span id="edit-mode-label">新建提示词</span>
+        <div class="modal-head-right">
+          <span class="meta" id="edit-meta"></span>
+          <button class="icon-btn" data-close="modal-edit">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="field-row">
+          <input id="f-title" class="inp" type="text" placeholder="标题，例如：论文润色助手" />
+          <input id="f-category" class="inp small" type="text" placeholder="分类（通用/编程/创意…）" />
+        </div>
+        <div class="field-row">
+          <input id="f-tags" class="inp" type="text" placeholder="标签，用逗号分隔，如：学术,可靠,中文" />
+        </div>
+        <textarea id="f-content" class="inp area" placeholder="在这里写提示词正文… 支持 Markdown（标题/加粗/代码块等会被渲染）"></textarea>
+        <div class="edit-foot">
+          <span class="counter" id="edit-counter">0 字 · ≈0 tokens</span>
+          <div>
+            <button class="ghost-btn" id="btn-ai-workbench">⚡ AI 优化工作台</button>
+            <button class="primary-btn" id="btn-save">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 优化工作台 -->
+  <div class="modal wide" id="modal-ai" hidden>
+    <div class="modal-card glass">
+      <div class="modal-head">
+        <span>⚡ AI 优化工作台</span>
+        <div class="modal-head-right">
+          <select id="ai-model" class="inp small select"></select>
+          <button class="icon-btn" data-close="modal-ai">✕</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="optimize">优化</button>
+        <button class="tab" data-tab="iterate">迭代</button>
+        <button class="tab" data-tab="translate">翻译</button>
+      </div>
+
+      <div class="modal-body ai-body">
+        <!-- 优化面板 -->
+        <div class="ai-panel" data-panel="optimize">
+          <div class="seg" id="opt-modes">
+            <button class="seg-btn active" data-mode="basic">基础优化</button>
+            <button class="seg-btn" data-mode="structured">专业结构化</button>
+            <button class="seg-btn" data-mode="plan">任务规划</button>
+          </div>
+          <div class="two-col">
+            <div class="col">
+              <label class="lbl">原始提示词</label>
+              <textarea id="ai-origin" class="inp area"></textarea>
+              <button class="primary-btn block" id="btn-ai-run">开始智能优化</button>
+            </div>
+            <div class="col">
+              <label class="lbl">AI 结果（实时渲染）</label>
+              <div class="result" id="ai-result"><div class="ph">✨ 准备就绪</div></div>
+              <div class="ai-foot">
+                <button class="ghost-btn" id="btn-ai-copy" disabled>复制</button>
+                <button class="ghost-btn" id="btn-ai-save" disabled>保存到知识库</button>
+                <button class="ghost-btn" id="btn-ai-stop" hidden>停止</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 迭代面板 -->
+        <div class="ai-panel" data-panel="iterate" hidden>
+          <div class="two-col">
+            <div class="col">
+              <label class="lbl">上一版结果（可在此基础上继续）</label>
+              <textarea id="it-base" class="inp area" readonly></textarea>
+              <label class="lbl">追加补充需求</label>
+              <textarea id="it-extra" class="inp area" placeholder="例如：再加一节能处理表格输入的说明"></textarea>
+              <button class="primary-btn block" id="btn-it-run">继续迭代</button>
+            </div>
+            <div class="col">
+              <label class="lbl">迭代结果</label>
+              <div class="result" id="it-result"><div class="ph">✨ 准备就绪</div></div>
+              <div class="ai-foot">
+                <button class="ghost-btn" id="btn-it-copy" disabled>复制</button>
+                <button class="ghost-btn" id="btn-it-save" disabled>保存到知识库</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 翻译面板 -->
+        <div class="ai-panel" data-panel="translate" hidden>
+          <div class="seg" id="tr-dir">
+            <button class="seg-btn active" data-dir="zh2en">中 → 英</button>
+            <button class="seg-btn" data-dir="en2zh">英 → 中</button>
+          </div>
+          <div class="two-col">
+            <div class="col">
+              <label class="lbl">原文</label>
+              <textarea id="tr-origin" class="inp area"></textarea>
+              <button class="primary-btn block" id="btn-tr-run">翻译</button>
+            </div>
+            <div class="col">
+              <label class="lbl">译文</label>
+              <div class="result" id="tr-result"><div class="ph">🌐 准备就绪</div></div>
+              <div class="ai-foot">
+                <button class="ghost-btn" id="btn-tr-copy" disabled>复制</button>
+                <button class="ghost-btn" id="btn-tr-save" disabled>保存到知识库</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 灵感胶囊 -->
+  <div class="modal" id="modal-inspire" hidden>
+    <div class="modal-card glass">
+      <div class="modal-head">
+        <span>💡 灵感胶囊</span>
+        <div class="modal-head-right">
+          <select id="insp-domain" class="inp small select">
+            <option value="business">商业分析（SWOT / 4P）</option>
+            <option value="creative">创意写作（多维发散）</option>
+            <option value="product">产品设计</option>
+            <option value="research">学术研究</option>
+            <option value="marketing">营销运营</option>
+            <option value="general">通用</option>
+          </select>
+          <button class="icon-btn" data-close="modal-inspire">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <textarea id="insp-input" class="inp area" placeholder="把一句话丢进来，例如：我想做一个面向程序员的高效笔记工具"></textarea>
+        <button class="primary-btn block" id="btn-insp-run">展开灵感</button>
+        <label class="lbl" style="margin-top:14px">胶囊产出（可直接当作细化提示词草稿）</label>
+        <div class="result" id="insp-result"><div class="ph">💡 准备就绪</div></div>
+        <div class="ai-foot">
+          <button class="ghost-btn" id="btn-insp-copy" disabled>复制</button>
+          <button class="ghost-btn" id="btn-insp-save" disabled>保存到知识库</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模型配置 -->
+  <div class="modal" id="modal-model" hidden>
+    <div class="modal-card glass">
+      <div class="modal-head">
+        <span>⚙️ 模型配置</span>
+        <button class="icon-btn" data-close="modal-model">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="cfg-block">
+          <h3>主模型</h3>
+          <div class="field-row">
+            <input id="cfg-main-model" class="inp" placeholder="模型名，如 deepseek-v4.1-flash" />
+          </div>
+          <div class="field-row">
+            <select id="cfg-main-preset" class="inp select">
+              <option value="private">百炼私有空间（默认）</option>
+              <option value="common">通义千问公版</option>
+              <option value="custom">自定义 OpenAI 兼容</option>
+            </select>
+          </div>
+          <div class="field-row custom-only" hidden>
+            <input id="cfg-main-base" class="inp" placeholder="自定义 Base URL，如 https://.../v1" />
+            <input id="cfg-main-key" class="inp" type="password" placeholder="自定义 API Key（可选）" />
+          </div>
+        </div>
+
+        <div class="cfg-block">
+          <h3>辅助模型</h3>
+          <div class="field-row">
+            <input id="cfg-sub-model" class="inp" placeholder="辅助模型名（可留空）" />
+          </div>
+          <div class="field-row">
+            <select id="cfg-sub-preset" class="inp select">
+              <option value="private">百炼私有空间（默认）</option>
+              <option value="common">通义千问公版</option>
+              <option value="custom">自定义 OpenAI 兼容</option>
+            </select>
+          </div>
+          <div class="field-row custom-only" hidden>
+            <input id="cfg-sub-base" class="inp" placeholder="自定义 Base URL" />
+            <input id="cfg-sub-key" class="inp" type="password" placeholder="自定义 API Key（可选）" />
+          </div>
+        </div>
+
+        <div class="cfg-block">
+          <h3>参数</h3>
+          <div class="slider-row">
+            <label>Temperature：<b id="cfg-temp-val">0.70</b></label>
+            <input id="cfg-temp" type="range" min="0" max="1.5" step="0.05" value="0.7" />
+          </div>
+          <div class="slider-row">
+            <label>最大 Token：<b id="cfg-maxtok-val">2000</b></label>
+            <input id="cfg-maxtok" type="range" min="256" max="8000" step="256" value="2000" />
+          </div>
+        </div>
+
+        <div class="edit-foot">
+          <span class="counter">配置仅保存在本机浏览器（localStorage）</span>
+          <button class="primary-btn" id="btn-cfg-save">保存配置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

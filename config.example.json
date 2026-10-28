@@ -1,0 +1,8 @@
+{
+  "_comment": "配置模板，已提交到 git。真实密钥请放在 .env（已被 .gitignore 忽略）。server.js 启动顺序：先读 .env，再读 config.json，最后回退到本文件。",
+  "apiKey": "",
+  "privateBaseUrl": "",
+  "commonBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "defaultModel": "deepseek-v4.1-flash",
+  "timeoutMs": 120000
+}
