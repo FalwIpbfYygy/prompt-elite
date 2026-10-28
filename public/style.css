@@ -206,7 +206,7 @@ body {
 .grid {
   flex: 1; overflow-y: auto; overflow-x: hidden; padding: 18px 24px 120px;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px; align-items: stretch;
+  gap: 16px; align-items: start;
 }
 @media (max-width: 720px) { .sidebar { display: none; } }
 
@@ -226,8 +226,8 @@ body {
 .card .menu { position: absolute; top: 12px; right: 38px; font-size: 16px; opacity: .35; }
 .card .menu:hover { opacity: 1; }
 .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; padding-right: 30px; line-height: 1.4; letter-spacing: -.2px; }
-.card .preview { font-size: 13px; color: var(--text-dim); line-height: 1.6;
-  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.card .preview { font-size: 13px; color: var(--text-dim); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .card .tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--text-dim); }
 .card .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; font-size: 11px; color: var(--text-faint); }
